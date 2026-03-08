@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if meta %}
+<div class="run-meta">
+    <span>Run: {{ meta.get('started_at', 'Unknown') }}</span>
+    <span>Scraped: {{ meta.get('jobs_scraped', 0) }}</span>
+    <span>Filtered: {{ meta.get('jobs_filtered', 0) }}</span>
+    <span>Scored: {{ meta.get('jobs_scored', 0) }}</span>
+</div>
+{% endif %}
+
+{% if total == 0 %}
+<div class="no-results">
+    <h2>No results yet</h2>
+    <p>Run the agent first:</p>
+    <pre>python run_agent.py</pre>
+    <p>Then refresh this page to see results.</p>
+</div>
+{% else %}
+
+<div class="results-summary">
+    <h2>{{ total }} role{{ 's' if total != 1 else '' }} analyzed</h2>
+</div>
+
+{% for a in analyses %}
+<div class="job-card signal-{{ a.overall_signal }}">
+    <div class="card-header">
+        <div class="card-rank">#{{ loop.index }}</div>
+        <div class="card-title-block">
+            <h3 class="card-title">
+                <a href="{{ a.job.url }}" target="_blank" rel="noopener">{{ a.job.title }}</a>
+            </h3>
+            <div class="card-company">{{ a.job.company }}</div>
+        </div>
+        <div class="card-score">
+            <div class="score-number">{{ a.overall_score | round | int }}</div>
+            <div class="score-label">fit score</div>
+        </div>
+        <div class="card-signal signal-badge signal-{{ a.overall_signal }}">
+            {{ a.overall_signal | upper }}
+        </div>
+    </div>
+
+    <div class="card-meta">
+        <span class="meta-item">{{ a.job.source }}</span>
+        <span class="meta-item">{{ a.job.location or 'Location unknown' }}</span>
+        {% if a.job.salary %}
+        <span class="meta-item salary">{{ a.job.salary }}</span>
+        {% endif %}
+        {% if a.job.posted_date %}
+        <span class="meta-item">Posted: {{ a.job.posted_date }}</span>
+        {% endif %}
+    </div>
+
+    <div class="card-reasoning">
+        <p>{{ a.overall_reasoning }}</p>
+    </div>
+
+    <details class="card-dimensions">
+        <summary>Dimension scores ({{ a.dimension_scores | length }})</summary>
+        <div class="dimensions-grid">
+            {% for d in a.dimension_scores %}
+            <div class="dimension signal-{{ d.signal }}">
+                <div class="dimension-header">
+                    <span class="dimension-signal signal-dot signal-{{ d.signal }}"></span>
+                    <strong>{{ d.dimension }}</strong>
+                </div>
+                <p class="dimension-reasoning">{{ d.reasoning }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+
+    {% if a.job.tags %}
+    <div class="card-tags">
+        {% for tag in a.job.tags %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% endif %}
+{% endblock %}
