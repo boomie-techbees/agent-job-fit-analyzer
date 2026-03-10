@@ -83,19 +83,21 @@ The agent surfaces results — it does **not** apply to jobs automatically. That
 ```
 agent-job-fit/
 ├── agent/
-│   ├── orchestrator.py       # Agent loop: think → act → observe
-│   ├── scrapers.py           # WWR + RemoteOK scrapers
-│   ├── researcher.py         # Company research via DuckDuckGo
-│   ├── scorer.py             # LLM-powered fit scoring
-│   ├── models.py             # Pydantic data models
-│   └── profile.py            # Baked-in candidate profile
+│   ├── orchestrator.py           # Agent loop: think → act → observe
+│   ├── scrapers.py               # WWR + RemoteOK scrapers
+│   ├── researcher.py             # Company research via DuckDuckGo
+│   ├── scorer.py                 # LLM-powered fit scoring
+│   ├── models.py                 # Pydantic data models
+│   └── profile.py                # Loads candidate profile from YAML
 ├── web/
-│   ├── app.py                # Flask app
-│   └── templates/            # HTML templates
-├── reports/                  # Generated reports (auto-created)
-├── config.py                 # Settings (reads from environment)
-├── run_agent.py              # CLI: run the agent
-└── run_web.py                # CLI: start the web UI
+│   ├── app.py                    # Flask app
+│   └── templates/                # HTML templates
+├── reports/                      # Generated reports (auto-created)
+├── candidate_profile.example.yaml  # Template — copy and fill in your details
+├── candidate_profile.yaml        # Your profile — gitignored, never committed
+├── config.py                     # Settings (reads from environment)
+├── run_agent.py                  # CLI: run the agent
+└── run_web.py                    # CLI: start the web UI
 ```
 
 ---
@@ -124,6 +126,27 @@ pip install -r requirements.txt
 # Set your API key
 export ANTHROPIC_API_KEY=your-key-here
 ```
+
+### Set up your profile
+
+The agent scores jobs against a candidate profile that you define. Your profile is **never committed** — it lives only on your machine.
+
+```bash
+# Copy the example profile
+cp candidate_profile.example.yaml candidate_profile.yaml
+
+# Open it and fill in your own details
+# (the example file has comments explaining every section)
+```
+
+The profile covers:
+- **Target titles** — the roles you are looking for
+- **Fit signals** — green (strong fit), yellow (partial fit), red (poor fit)
+- **Background highlights** — key achievements used in scoring context
+- **Title patterns** — regex pre-filter that runs before the LLM
+- **Scoring dimensions** — the criteria the LLM grades each role on
+
+`candidate_profile.yaml` is in `.gitignore` so your personal details stay local even when you push or fork the repo.
 
 ### Run
 
@@ -172,12 +195,14 @@ Completed in 24s.
 
 ## Customizing the Candidate Profile
 
-The scoring profile lives in `agent/profile.py`. To adapt this agent for a different candidate, update:
-- Target titles and keywords
-- Green/yellow/red fit signals
-- Background highlights used in scoring context
+The scoring profile lives in `candidate_profile.yaml` (gitignored, never committed). See [candidate_profile.example.yaml](./candidate_profile.example.yaml) for the full commented template. Sections include:
 
-This is v1 — profile customization via UI is a planned v2 feature.
+- **Target titles** and pre-filter regex patterns
+- **Fit signals** — green / yellow / red
+- **Background highlights** used in the LLM scoring prompt
+- **Scoring dimensions** — add, remove, or reword to match what matters to you
+
+Profile customization via the web UI is a planned v2 feature.
 
 ---
 

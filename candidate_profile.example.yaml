@@ -1,0 +1,181 @@
+# candidate_profile.example.yaml
+#
+# This file defines the candidate profile used when scoring job listings.
+# Copy this file to candidate_profile.yaml, fill in your own details, and
+# the agent will use it automatically. candidate_profile.yaml is gitignored
+# so your personal information stays local.
+#
+# Usage:
+#   cp candidate_profile.example.yaml candidate_profile.yaml
+#   # Edit candidate_profile.yaml with your own details
+#   python run_agent.py
+
+
+# ---------------------------------------------------------------------------
+# IDENTITY
+# A short 1-3 sentence summary of who the candidate is and what they are
+# looking for. Used by the LLM as context when scoring each role.
+# ---------------------------------------------------------------------------
+identity: >
+  Senior engineering leader with 20+ years experience.
+  Operates as Fractional CTO/VPE through TechBees coaching practice.
+  Open to fractional, interim, or full-time roles.
+
+
+# ---------------------------------------------------------------------------
+# TITLE TARGETS
+# Human-readable list of the job titles you are targeting. Used as context
+# in the LLM scoring prompt. For the fast pre-filter regex patterns, see
+# the title_patterns section below.
+# ---------------------------------------------------------------------------
+title_targets:
+  - CTO
+  - VPE
+  - VP Engineering
+  - VP of Engineering
+  - Head of Engineering
+  - Fractional CTO
+  - Director of Engineering
+
+
+# ---------------------------------------------------------------------------
+# FIT SIGNALS
+# These three lists tell the LLM what makes a role a strong, partial, or
+# poor fit. Keep each signal concise — one phrase per bullet.
+#
+# strong_fit_signals  → GREEN  (this is what you are looking for)
+# partial_fit_signals → YELLOW (could work but not ideal)
+# poor_fit_signals    → RED    (deal-breakers or clear mismatches)
+# ---------------------------------------------------------------------------
+strong_fit_signals:
+  - VP or C-level scope
+  - Security, DevSecOps, or compliance in the domain
+  - Civic tech, nonprofit, climate tech, or mission-driven org
+  - Scaling teams or building engineering orgs from early stage
+  - Remote or DC Metro Area
+  - AWS, GCP, or modern cloud infrastructure
+  - Cross-functional alignment with product and executives
+
+partial_fit_signals:
+  - Director-level but not VP scope
+  - Strong technical domain but no security component
+  - Hybrid or unclear location
+  - Early-stage startup with unclear funding
+
+poor_fit_signals:
+  - IC (individual contributor) roles
+  - Requires on-site outside DC Metro
+  - Purely frontend or mobile-only stack
+  - No leadership scope
+
+
+# ---------------------------------------------------------------------------
+# BACKGROUND HIGHLIGHTS
+# Key achievements and credentials that are used in the scoring prompt to
+# help the LLM reason about how well the candidate's background fits a role.
+# Lead each item with the most important detail (number, credential, etc.).
+# ---------------------------------------------------------------------------
+background_highlights:
+  - Led engineering orgs up to 18 direct reports + contractors
+  - Delivered national-scale systems (230M+ transactions, zero errors)
+  - Security leadership: SOC2, DevSecOps, policy authoring, security reviews
+  - Cost optimization track record ($100K-$275K+ annual savings)
+  - Career ladder and hiring process design
+  - Fractional CTO experience (Great Nonprofits engagement)
+  - MBA (Wharton) + MS Computer Science + BS Mechanical Engineering
+
+
+# ---------------------------------------------------------------------------
+# TITLE PATTERNS  (pre-filter regex — runs before the LLM)
+# These Python-style regex patterns are used to quickly filter thousands of
+# job listings down to the handful worth sending to the LLM. They are
+# compiled with re.IGNORECASE and matched with word boundaries to avoid
+# false positives (e.g., "cto" in "Director").
+#
+# Use \b for word boundaries. The agent wraps each pattern in re.compile()
+# with re.IGNORECASE automatically — you do not need to add flags here.
+#
+# Examples of common patterns:
+#   \bcto\b                    — exact word "CTO"
+#   \bvp\b.{0,4}eng            — "VP Engineering", "VP of Eng", "VP, Eng"
+#   \bhead of eng              — "Head of Engineering"
+#   \bdirector.{0,4}eng        — "Director of Engineering", "Director, Eng"
+# ---------------------------------------------------------------------------
+title_patterns:
+  - \bcto\b
+  - \bchief technology
+  - \bchief technical
+  - \bvp\b.{0,4}eng
+  - \bvice president.{0,4}eng
+  - \bhead of eng
+  - \bdirector.{0,4}eng
+  - \bengineering director\b
+  - \bfractional\b.{0,6}cto\b
+  - \bfractional\b.{0,6}chief
+  - \bvpe\b
+
+
+# ---------------------------------------------------------------------------
+# TITLE EXCLUSIONS  (reject even if a pattern above matched)
+# Lowercase strings. If any of these appear in the job title (case-
+# insensitive substring match), the listing is filtered out regardless of
+# whether a title_pattern matched. Use this for IC roles or specializations
+# that share keywords with your target titles.
+# ---------------------------------------------------------------------------
+title_exclusions:
+  - frontend director
+  - mobile director
+  - individual contributor
+  - staff engineer
+  - senior engineer
+  - principal engineer
+  - software engineer
+  - data engineer
+  - ml engineer
+  - machine learning engineer
+  - devops engineer
+  - sre
+  - site reliability
+
+
+# ---------------------------------------------------------------------------
+# SCORING DIMENSIONS
+# Each dimension is scored GREEN / YELLOW / RED by the LLM with a written
+# rationale. Add, remove, or reword dimensions to match the factors that
+# matter most to you.
+#
+# name        — short label shown in the web UI and report
+# description — the question the LLM answers when scoring this dimension;
+#               be specific and reference your own priorities where helpful
+# ---------------------------------------------------------------------------
+scoring_dimensions:
+  - name: Leadership Scope
+    description: Does this role carry VP/C-level scope with org-wide impact?
+
+  - name: Domain Alignment
+    description: >
+      Does the domain involve security, DevSecOps, compliance,
+      or infrastructure? Does it match the candidate's strengths?
+
+  - name: Mission Fit
+    description: >
+      Is this a mission-driven org (civic tech, nonprofit, climate tech)
+      or does the company mission resonate?
+
+  - name: Team Building
+    description: >
+      Does the role involve scaling teams, building engineering orgs,
+      or org design from early stage?
+
+  - name: Location
+    description: Is the role remote, DC Metro Area, or requires relocation?
+
+  - name: Tech Stack
+    description: >
+      Does the stack include AWS, GCP, modern cloud infra?
+      Or is it purely frontend/mobile-only?
+
+  - name: Cross-functional Scope
+    description: >
+      Does the role involve alignment with product, executives,
+      and business stakeholders?

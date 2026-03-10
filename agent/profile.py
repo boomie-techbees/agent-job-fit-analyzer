@@ -1,134 +1,40 @@
-"""Baked-in candidate profile used as the scoring benchmark."""
+"""Loads the candidate profile from candidate_profile.yaml at the project root."""
+
+import re
+import sys
+from pathlib import Path
+
+import yaml
+
+_PROFILE_PATH = Path(__file__).parent.parent / "candidate_profile.yaml"
+_EXAMPLE_PATH = Path(__file__).parent.parent / "candidate_profile.example.yaml"
+
+if not _PROFILE_PATH.exists():
+    sys.exit(
+        f"\nError: {_PROFILE_PATH.name} not found.\n"
+        f"Copy {_EXAMPLE_PATH.name}, fill in your details, "
+        f"and rename it to {_PROFILE_PATH.name}:\n\n"
+        f"  cp candidate_profile.example.yaml candidate_profile.yaml\n"
+    )
+
+with _PROFILE_PATH.open() as _f:
+    _data = yaml.safe_load(_f)
 
 CANDIDATE_PROFILE = {
-    "identity": (
-        "Senior engineering leader with 20+ years experience. "
-        "Operates as Fractional CTO/VPE through TechBees coaching practice. "
-        "Open to fractional, interim, or full-time roles."
-    ),
-    "title_targets": [
-        "CTO",
-        "VPE",
-        "VP Engineering",
-        "VP of Engineering",
-        "Head of Engineering",
-        "Fractional CTO",
-        "Director of Engineering",
-    ],
-    "strong_fit_signals": [
-        "VP or C-level scope",
-        "Security, DevSecOps, or compliance in the domain",
-        "Civic tech, nonprofit, climate tech, or mission-driven org",
-        "Scaling teams or building engineering orgs from early stage",
-        "Remote or DC Metro Area",
-        "AWS, GCP, or modern cloud infrastructure",
-        "Cross-functional alignment with product and executives",
-    ],
-    "partial_fit_signals": [
-        "Director-level but not VP scope",
-        "Strong technical domain but no security component",
-        "Hybrid or unclear location",
-        "Early-stage startup with unclear funding",
-    ],
-    "poor_fit_signals": [
-        "IC (individual contributor) roles",
-        "Requires on-site outside DC Metro",
-        "Purely frontend or mobile-only stack",
-        "No leadership scope",
-    ],
-    "background_highlights": [
-        "Led engineering orgs up to 18 direct reports + contractors",
-        "Delivered national-scale systems (230M+ transactions, zero errors)",
-        "Security leadership: SOC2, DevSecOps, policy authoring, security reviews",
-        "Cost optimization track record ($100K-$275K+ annual savings)",
-        "Career ladder and hiring process design",
-        "Fractional CTO experience (Great Nonprofits engagement)",
-        "MBA (Wharton) + MS Computer Science + BS Mechanical Engineering",
-    ],
+    "identity": _data["identity"],
+    "title_targets": _data["title_targets"],
+    "strong_fit_signals": _data["strong_fit_signals"],
+    "partial_fit_signals": _data["partial_fit_signals"],
+    "poor_fit_signals": _data["poor_fit_signals"],
+    "background_highlights": _data["background_highlights"],
 }
 
 # Title patterns for fast pre-filtering (before LLM scoring).
-# These are compiled into regex patterns with word boundaries to avoid
-# substring false positives (e.g., "cto" matching "Director").
-import re
-
-_RAW_TITLE_PATTERNS = [
-    r"\bcto\b",
-    r"\bchief technology",
-    r"\bchief technical",
-    r"\bvp\b.{0,4}eng",           # "VP Engineering", "VP of Eng", "VP, Eng"
-    r"\bvice president.{0,4}eng",
-    r"\bhead of eng",
-    r"\bdirector.{0,4}eng",       # "Director of Engineering", "Director, Eng"
-    r"\bengineering director\b",
-    r"\bfractional\b.{0,6}cto\b",
-    r"\bfractional\b.{0,6}chief",
-    r"\bvpe\b",
+# Compiled with word boundaries to avoid substring false positives.
+TITLE_PATTERNS_RE = [
+    re.compile(p, re.IGNORECASE) for p in _data["title_patterns"]
 ]
 
-TITLE_PATTERNS_RE = [re.compile(p, re.IGNORECASE) for p in _RAW_TITLE_PATTERNS]
+TITLE_EXCLUSIONS: list[str] = _data["title_exclusions"]
 
-# Titles that are explicitly poor fits — used to reject even if they
-# partially match a pattern above (e.g., "Director of Frontend Engineering").
-TITLE_EXCLUSIONS = [
-    "frontend director",
-    "mobile director",
-    "individual contributor",
-    "staff engineer",
-    "senior engineer",
-    "principal engineer",
-    "software engineer",
-    "data engineer",
-    "ml engineer",
-    "machine learning engineer",
-    "devops engineer",
-    "sre",
-    "site reliability",
-]
-
-
-SCORING_DIMENSIONS = [
-    {
-        "name": "Leadership Scope",
-        "description": "Does this role carry VP/C-level scope with org-wide impact?",
-    },
-    {
-        "name": "Domain Alignment",
-        "description": (
-            "Does the domain involve security, DevSecOps, compliance, "
-            "or infrastructure? Does it match the candidate's strengths?"
-        ),
-    },
-    {
-        "name": "Mission Fit",
-        "description": (
-            "Is this a mission-driven org (civic tech, nonprofit, climate tech) "
-            "or does the company mission resonate?"
-        ),
-    },
-    {
-        "name": "Team Building",
-        "description": (
-            "Does the role involve scaling teams, building engineering orgs, "
-            "or org design from early stage?"
-        ),
-    },
-    {
-        "name": "Location",
-        "description": "Is the role remote, DC Metro Area, or requires relocation?",
-    },
-    {
-        "name": "Tech Stack",
-        "description": (
-            "Does the stack include AWS, GCP, modern cloud infra? "
-            "Or is it purely frontend/mobile-only?"
-        ),
-    },
-    {
-        "name": "Cross-functional Scope",
-        "description": (
-            "Does the role involve alignment with product, executives, "
-            "and business stakeholders?"
-        ),
-    },
-]
+SCORING_DIMENSIONS: list[dict] = _data["scoring_dimensions"]
