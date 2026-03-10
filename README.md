@@ -9,9 +9,9 @@ A real AI agent — not a chatbot, not a script — that autonomously scans job 
 ## What It Does
 
 1. **Scrapes** job listings from [We Work Remotely](https://weworkremotely.com) and [RemoteOK](https://remoteok.com) — both permit scraping per their terms
-2. **Filters** for senior engineering leadership roles (CTO, VPE, VP Engineering, Head of Engineering, Director of Engineering)
+2. **Filters** for roles matching your candidate profile — the example targets senior engineering leadership (CTO, VPE, VP Engineering, Head of Engineering, Director of Engineering), but this is fully configurable
 3. **Researches** each company autonomously using web search
-4. **Scores** each role against a baked-in candidate profile using Claude AI — green/yellow/red on key dimensions with written reasoning
+4. **Scores** each role against your candidate profile using Claude AI — green/yellow/red on key dimensions with written reasoning
 5. **Outputs** a web UI with ranked, color-coded results and a saved Markdown report
 
 You don't paste anything. You don't prompt it. It goes and gets the information, reasons about it, and surfaces results for your review.
@@ -75,6 +75,7 @@ The agent surfaces results — it does **not** apply to jobs automatically. That
 | `pydantic` | Type-safe data models |
 | `flask` | Web UI |
 | `rich` | CLI progress output during agent run |
+| `pyyaml` | Loads candidate profile from YAML at runtime |
 
 ---
 
@@ -162,7 +163,7 @@ python run_web.py
 ### What to Expect
 
 - **~24 seconds** for a full run across 276 listings
-- Senior leadership roles are genuinely rare on these boards — a run typically surfaces 0–3 matches. That's correct behavior, not a bug.
+- Senior leadership roles (as in the example profile) are genuinely rare on these boards — a run typically surfaces 0–3 matches. That's correct behavior, not a bug. Runs targeting broader role types will see more matches.
 - Each matched role gets researched and scored via Claude API (~1 API call per role), so costs are minimal
 - Results are saved to `reports/` as both JSON and Markdown
 
@@ -218,8 +219,8 @@ The goal: demonstrate not just that AI tools can be used, but that they can be e
 
 ## What's Next
 
-- [ ] User-configurable profile (v2)
-- [ ] Additional job boards
+- [x] User-configurable profile via YAML
+- [ ] Additional job boards (currently hardcoded to WWR + RemoteOK)
 - [ ] Scheduled runs with digest output
 - [ ] AWS deployment
 
